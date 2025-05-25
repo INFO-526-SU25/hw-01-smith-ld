@@ -17,12 +17,32 @@ if (!require("pacman"))
 # pacman::p_load() 
 
 devtools::install_github("tidyverse/dsbox")
+install.packages("readr")
+install.packages("tidyverse")
+library("readr")
+library("tidyverse")
 ```
 
 ## 1 - Road traffic accidents in Edinburgh
 
 ```{r label-me-1}
 
+accidents <- read_csv("data/accidents.csv")
+```
+```{r}
+accidents2 <- accidents[c("day_of_week", "time", "severity")]
+accidents2 <- accidents2 %>% group_by(day_of_week) %>% mutate(is_weekend = if(any(day_of_week=='Sunday' 
+                                                                   | day_of_week == 'Saturday'))  "Weekend" else "Weekday")
+
+g <- ggplot(accidents2, aes(x=time, group=severity, fill=severity))
+g <- g + geom_density(alpha=0.7)  + facet_wrap(~is_weekend, nrow=2)
+g <- g + labs(x="Time of day", y="Density", title="Number of accidents throughout the day", subtitle="By day of week and severity") +  
+  scale_fill_manual("severity", name="Severity", values = c("Fatal"="#A694AE","Serious"= "#A7C9C7", "Slight"="#FCF3A9"))
+g <- g + theme_minimal() 
+
+
+g
+# A694AE = fatal, FCF3A9 = slight, A7C9C7 = serious
 ```
 
 ## 2 - NYC marathon winners
