@@ -47,8 +47,29 @@ g
 
 ## 2 - NYC marathon winners
 
-```{r label-me-2}
+### 2a
+We see that with the two plots below, there is a better understanding of outliers when viewing the box plot. However, in the histogram, there appear to be two distributions: a high number of runners around the 2 hour mark, and another high number of runners around the 2:30 mark. This is not seen in the boxplot, which only shows the mean of the entire dataset. 
 
+```{r label-me-2}
+nyc <- read_csv("data/nyc_marathon.csv")
+# glimpse(nyc)
+g <- ggplot(nyc, aes(x=time)) +  geom_histogram(alpha=0.9, fill="lightblue") + theme_minimal()
+g <- g + labs(x="Total Time", y="Frequency", title = "NYC Marathon winner times, 1970-2000")
+g
+```
+
+
+```{r}
+g <- ggplot(nyc, aes(x=time)) +  geom_boxplot(alpha=0.9, fill="lightblue") + theme_minimal()
+g <- g + labs(x="Total Time", title = "NYC Marathon winner times, 1970-2000")
+g
+```
+### 2b
+When stratifying by gender, we find that the reason for two distributions as seen from the histogram above is due to difference in performance by gender. Women have a higher winning time than men. 
+```{r}
+g <- ggplot(nyc, aes(y=time, color=division)) + geom_boxplot() + scale_color_manual(values=c("#E69F00", "#7aa9a9" ))
+g <- g + theme_minimal() + theme(axis.ticks.x=element_blank(), axis.text.x=element_blank()) + labs(y="Time", title="NYC Marathon winners 1970-2000 comparison via Men and Women")
+g 
 ```
 
 ## 3 - US counties
