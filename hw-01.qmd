@@ -1,6 +1,6 @@
 ---
 title: "HW 01"
-author: "INSERT YOUR NAME HERE"
+author: "Lucas Smith"
 format: 
   html:
     embed-resources: true
@@ -21,6 +21,7 @@ install.packages("readr")
 install.packages("tidyverse")
 library("readr")
 library("tidyverse")
+library("ggplot2")
 ```
 
 ## 1 - Road traffic accidents in Edinburgh
@@ -29,6 +30,7 @@ library("tidyverse")
 
 accidents <- read_csv("data/accidents.csv")
 ```
+
 ```{r}
 accidents2 <- accidents[c("day_of_week", "time", "severity")]
 accidents2 <- accidents2 %>% group_by(day_of_week) %>% mutate(is_weekend = if(any(day_of_week=='Sunday' 
@@ -48,7 +50,8 @@ g
 ## 2 - NYC marathon winners
 
 ### 2a
-We see that with the two plots below, there is a better understanding of outliers when viewing the box plot. However, in the histogram, there appear to be two distributions: a high number of runners around the 2 hour mark, and another high number of runners around the 2:30 mark. This is not seen in the boxplot, which only shows the mean of the entire dataset. 
+
+We see that with the two plots below, there is a better understanding of outliers when viewing the box plot. However, in the histogram, there appear to be two distributions: a high number of runners around the 2 hour mark, and another high number of runners around the 2:30 mark. This is not seen in the boxplot, which only shows the mean of the entire dataset.
 
 ```{r label-me-2}
 nyc <- read_csv("data/nyc_marathon.csv")
@@ -58,22 +61,146 @@ g <- g + labs(x="Total Time", y="Frequency", title = "NYC Marathon winner times,
 g
 ```
 
-
 ```{r}
 g <- ggplot(nyc, aes(x=time)) +  geom_boxplot(alpha=0.9, fill="lightblue") + theme_minimal()
 g <- g + labs(x="Total Time", title = "NYC Marathon winner times, 1970-2000")
 g
 ```
+
 ### 2b
-When stratifying by gender, we find that the reason for two distributions as seen from the histogram above is due to difference in performance by gender. Women have a higher winning time than men. 
+
+When stratifying by gender, we find that the reason for two distributions as seen from the histogram above is due to difference in performance by gender. Women have a higher winning time than men.
+
 ```{r}
 g <- ggplot(nyc, aes(y=time, color=division)) + geom_boxplot() + scale_color_manual(values=c("#E69F00", "#7aa9a9" ))
 g <- g + theme_minimal() + theme(axis.ticks.x=element_blank(), axis.text.x=element_blank()) + labs(y="Time", title="NYC Marathon winners 1970-2000 comparison via Men and Women")
 g 
 ```
 
+### 2c
+
+I don't believe that any of the data from 2b is redundant. Comparing both men and women via box plots shows us useful information, and maintains the minimal data to ink ratio that we desire. We could consider eliminating outliers, doing so would focus on the core values instead of any high or low performing years.
+
+```{r}
+g <- ggplot(nyc, aes(y=time, color=division)) + geom_boxplot(outlier.shape=NA) + scale_color_manual(values=c("#E69F00", "#7aa9a9" ))
+g <- g + theme_minimal() + theme(axis.ticks.x=element_blank(), axis.text.x=element_blank()) + labs(y="Time", title="NYC Marathon winners 1970-2000 comparison via Men and Women")
+g 
+```
+
+### 2d
+
+With a time-series based model twe can more clearly see the difference across years. What we notice that the spikes between men and women are consistent across years. This could be due to the chnage in the course every year, causing fluctuation in times.
+
+```{r}
+g <- ggplot(nyc, aes(x=year, y=time, color=division)) + geom_line() + scale_color_manual(values=c("#E69F00", "#7aa9a9" ))
+g <- g + theme_minimal() + labs(x="Year", y="Finishing Time", title="NYC Marathon winners 1970-2000 comparison via Men and Women")
+g 
+```
+
 ## 3 - US counties
 
+### 3a
+
+This does not make sense. It compares two different things, a smoking ban and education against household income. As another note, the y axis is subtly two different values, but of the same type (population and household income).
+
+```{r}
+county <- read_csv("data/county.csv")
+ggplot(county) +
+  geom_point(aes(x = median_edu, y = median_hh_income)) +
+  geom_boxplot(aes(x = smoking_ban, y = pop2017))
+```
+
+### 3b
+
+The second plot makes it easier to compare poverty levels. Primarily this is due to the ratio of the x and y axes. The y axis on the first plot is too challenging to compare and distinguish between poverty levels. The second graph solves this question and makes it easier to review poverty levels. In addition, the standardization of poverty levels on the second set of graphs is easier to read because the comparison against poverty is easier to compare between graphs: i.e., when knowing what we want to compare (poverty), it is easier to compare when you can traverse across faceted graphs easily.
+
+```{r}
+ggplot(county %>% filter(!is.na(median_edu))) + 
+  geom_point(aes(x = homeownership, y = poverty)) + 
+  facet_grid(median_edu ~ .)
+```
+
+```{r}
+ggplot(county %>% filter(!is.na(median_edu))) + 
+  geom_point(aes(x = homeownership, y = poverty)) + 
+  facet_grid(. ~ median_edu)
+```
+
+### 3c
+
+```{r}
+install.packages("gridExtra")
+
+```
+
+```{r}
+library("gridExtra")
+```
+
+```{r}
+base <- ggplot(county, aes(x=homeownership, y=poverty))
+plota <- base + geom_point() + labs(title="Plot A") # A and B might need to remove group
+plotb <- base + geom_point() + geom_smooth(se=FALSE) + labs(title="Plot B")
+
+# change aes to group=metro for c and d
+plotc <- ggplot(county, aes(x=homeownership, y=poverty, group=metro)) + geom_point() + geom_smooth(se=FALSE, color="green") + labs(title="Plot C")
+plotd <- base + geom_smooth(se=FALSE) + geom_point()+ labs(title="Plot D")
+
+base2 <- ggplot(county, aes(x=homeownership, y=poverty, group=metro, color=metro))
+ploth <- base2 + geom_point() + coord_fixed(ratio = .7)+ labs(title="Plot H")
+plotf <- base2 + geom_point() + geom_smooth(se=FALSE) + coord_fixed(ratio = .7) + labs(title="Plot F")
+
+# base3 <- ggplot(county, aes(x=homeownership, y=poverty, group=metro)) + geom_smooth(se=FALSE)
+# confirmed this is g
+plotg <- base + labs(title="Plot G") + geom_point(data=county, aes(x=homeownership, y=poverty, color=metro)) + geom_smooth(data=county, aes(x=homeownership, y=poverty), se=FALSE) + coord_fixed(ratio = .7)
+
+# plotb
+
+metro_yes <- county |> filter(metro == "yes")
+metro_no <- county  |> filter(metro == "no")
+plote <- base + labs(title="Plot E") + geom_point(data=county, aes(x=homeownership, y=poverty, color=metro)) + geom_smooth(data=metro_yes, aes(x=homeownership, y=poverty, group=metro), se=FALSE, linetype="dashed") + geom_smooth(data=metro_no, aes(x=homeownership, y=poverty, group=metro), se=FALSE) + coord_fixed(ratio = .7)
+
+
+
+```
+
+```{r}
+grid.arrange(plota, plotb, plotc, plotd, nrow=2, ncol=2)
+```
+
+```{r}
+grid.arrange(plote, plotf, plotg, ploth, nrow=2, ncol=2)
+```
+
 ## 4 - Rental apartments in SF
+
+### 4a
+
+```{r}
+library(scales)
+credit <- read_csv("data/credit.csv")
+
+g <- ggplot(credit, aes(x=income, y=balance, shape=factor(student), colour=factor(student) ))
+g   + 
+  theme(panel.background=element_rect(fill="white", colour="darkgrey", linewidth=1), panel.grid = element_line(colour="lightgrey"), legend.position="none", strip.background.y = element_rect(linewidth=1, color="darkgrey"), strip.background.x=element_rect(linewidth=1,color="darkgrey")) +
+geom_point(show.legend=FALSE, )  + facet_grid(
+    rows=vars(student), 
+    cols=vars(married), 
+    labeller = label_both
+    )   + scale_y_continuous(
+    labels = label_currency(scale_cut = cut_short_scale())
+    ) + scale_x_continuous(
+    labels=label_currency(suffix="K"),
+    ) + labs(
+       x="Income", 
+       y="Credit card balance"
+    ) + geom_smooth(method="lm", se=FALSE) 
+```
+
+### 4b
+
+### 4c 
+
+### 4d
 
 ## 5 - Napoleon’s march.
