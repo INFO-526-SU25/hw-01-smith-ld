@@ -176,11 +176,13 @@ grid.arrange(plote, plotf, plotg, ploth, nrow=2, ncol=2)
 
 ### 4a
 
+Based on the graphs below, there is a positive correlation between your income and your credit card balance. In respect to the difference of being in a relationship, there is still a positive correlation between the two, however with those being married, both income and credit card balance are higher. The same applies for being a student, however this could be an outlier as there are not many student observations.
+
 ```{r}
 library(scales)
 credit <- read_csv("data/credit.csv")
 
-g <- ggplot(credit, aes(x=income, y=balance, shape=factor(student), colour=factor(student) ))
+g <- ggplot(credit, aes(x=income, y=balance, shape=factor(student), colour=factor(student), alpha=0.8))
 g   + 
   theme(panel.background=element_rect(fill="white", colour="darkgrey", linewidth=1), panel.grid = element_line(colour="lightgrey"), legend.position="none", strip.background.y = element_rect(linewidth=1, color="darkgrey"), strip.background.x=element_rect(linewidth=1,color="darkgrey")) +
 geom_point(show.legend=FALSE, )  + facet_grid(
@@ -199,8 +201,45 @@ geom_point(show.legend=FALSE, )  + facet_grid(
 
 ### 4b
 
-### 4c 
+I think that both might be a useful feature when predicting credit card balance. They both have a positive correlation, and the correlation is consistent. If the correlation were inconsistent then perhaps I would suggest to not include it in predictions. In addition, from domain knowledge it does seem reasonable that a married person would have a higher credit card balance.
+
+###  4c
+
+```{r}
+credit['utilization'] <- credit['balance'] / credit['limit']
+
+
+g <- ggplot(credit, aes(x=income, y=utilization, shape=factor(student), colour=factor(student), alpha=0.8))
+g   + 
+  theme(
+      panel.background=element_rect(fill="white", colour="darkgrey", linewidth=1), 
+      panel.grid = element_line(colour="lightgrey"), 
+      legend.position="none", 
+      strip.background.y = element_rect(linewidth=1, color="darkgrey"), 
+      strip.background.x=element_rect(linewidth=1,color="darkgrey")
+      ) +
+geom_point(show.legend=FALSE)  + 
+facet_grid(
+    rows=vars(student), 
+    cols=vars(married), 
+    labeller = label_both
+    )   + 
+scale_y_continuous(
+    labels = label_percent()
+    ) + 
+scale_x_continuous(
+    labels=label_currency(suffix="K"),
+    ) + 
+labs(
+       x="Income", 
+       y="Credit utilization"
+    ) + 
+geom_smooth(method="lm", se=FALSE) 
+
+```
 
 ### 4d
+
+The relationship of credit utilization is different for students. When comparing credit utilization versus balance, students have a positive correlation for credit card balance, but a negative one if they are not married, and a marginally negative one for those that are married. For non-students, we still find a positive correlation of credit utilization to income.
 
 ## 5 - Napoleon’s march.
