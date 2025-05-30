@@ -16,7 +16,7 @@ if (!require("pacman"))
 # use this line for installing/loading
 # pacman::p_load() 
 
-devtools::install_github("tidyverse/dsbox")
+#devtools::install_github("tidyverse/dsbox")
 install.packages("readr")
 install.packages("tidyverse")
 library("readr")
@@ -46,13 +46,14 @@ g <- g + theme_minimal()
 g
 # A694AE = fatal, FCF3A9 = slight, A7C9C7 = serious
 ```
-This data documents fatalities by weekday, time of day, and the severity. This coul dbe in an attempt to identify rom for improvement, or road planning, or an initial discovery for root cause identification and further fatality prevention. We also notice that fatal severity occurs mostly on the weekends, and not during the week; there are 3 major spikes - around 10pm, early morning, and around noon. 
+
+This data documents fatalities by weekday, time of day, and the severity. This could be in an attempt to identify room for improvement, or road planning, or an initial discovery for root cause identification and further fatality prevention. We also notice that fatal severity occurs mostly on the weekends, and not during the week; there are 3 major spikes - around 10pm, early morning, and around noon.
 
 ## 2 - NYC marathon winners
 
 ### 2a
 
-We see that with the two plots below, there is a better understanding of outliers when viewing the box plot. However, in the histogram, there appear to be two distributions: a high number of runners around the 2 hour mark, and another high number of runners around the 2:30 mark. This is not seen in the boxplot, which only shows the mean of the entire dataset.
+We see that with the two plots below, there is a better understanding of outliers when viewing the box plot. However, in the histogram, there appear to be two distributions: a high number of runners around the 2 hour mark, and another high number of runners around the 2:30 mark. This is not seen in the boxplot, which only shows the mean of the entire data set.
 
 ```{r label-me-2}
 nyc <- read_csv("data/nyc_marathon.csv")
@@ -204,7 +205,7 @@ geom_point(show.legend=FALSE, )  + facet_grid(
 
 I think that both might be a useful feature when predicting credit card balance. They both have a positive correlation, and the correlation is consistent. If the correlation were inconsistent then perhaps I would suggest to not include it in predictions. In addition, from domain knowledge it does seem reasonable that a married person would have a higher credit card balance.
 
-###  4c
+### 4c
 
 ```{r}
 credit['utilization'] <- credit['balance'] / credit['limit']
@@ -245,7 +246,6 @@ The relationship of credit utilization is different for students. When comparing
 
 ## 5 - Napoleon’s march.
 
-
 ```{r}
 
 knitr::opts_chunk$set(
@@ -256,7 +256,11 @@ knitr::opts_chunk$set(
   dpi = 300             # higher dpi, sharper image
 )
 
+# load data set 
 nap <- read_rds("data/napoleon.rds")
+
+# I created subsets fo data here for ease of use when graphing.
+# I did so for me to use geom_path and identify coloring and direct lines, instead of using someing like geom_line(), which would not perform in a similar manner. Subsets of data are stratified by group trooping and advancing or retreating.
 advancing <- troops |> filter(direction == "advancing" & group==1)
 retreating <- troops |> filter(direction == "retreating" & group == 1)
 h <- ggplot(advancing, aes(x=long, y=lat, size=survivors), colors=direction)
@@ -266,8 +270,14 @@ rtr2 <- troops |> filter(direction == "retreating" & group == 2)
 adv3 <- troops |> filter(direction == "advancing" & group==3)
 rtr3 <- troops |> filter(direction == "retreating" & group == 3)
 
-alpha_setting <- 1
+alpha_setting <- 1 # I tried different alpha settings but did not like the results. 
 
+
+# I created a temporary graph called h and p. I used this for testing in the console for ease of use when trying out different graph additions, and have kept it.
+
+# Things done here
+#   - Add a scale of the geom_path for the width of each band
+#   - Add paths for each group and each type (retreating, advancing) 
 p<- h + scale_size(range=c(2, 10)) + geom_path(data=retreating, aes(long, lat, size=survivors, color=direction), linejoin = "bevel", lineend="round", alpha=alpha_setting) +
   geom_path(data=rtr2, aes(long, lat, size=survivors, color=direction), linejoin = "bevel", lineend="round", alpha=alpha_setting) + 
   geom_path(data=rtr3, aes(long, lat, size=survivors, color=direction), linejoin = "bevel", lineend="round", alpha=alpha_setting) + 
@@ -275,16 +285,26 @@ p<- h + scale_size(range=c(2, 10)) + geom_path(data=retreating, aes(long, lat, s
   geom_path(data=adv2, aes(long, lat, size=survivors, color=direction), linejoin = "bevel", lineend="round", alpha=alpha_setting) + 
 geom_path(aes(color=direction), linejoin = "bevel", lineend="round", alpha=alpha_setting)
 
+# Here I consolidate the p graph with the final theme. 
+#     - Get rid of the background, legend, etc.
+#     - Add labeling of the cities
+#     - Add custom coloring of the paths
+#     - Get rid of the y scaling and x scaling, as that is not used in the original for the path itself
+#     - Remove x and y axis labels
 minard_plot <- p +  theme(panel.background=element_rect(fill="white", colour="white", linewidth = 1),   panel.grid.major.x=element_blank(),
   panel.grid.minor.x=element_blank(),,
                  legend.position="none", 
 ) + geom_text(data=nap$cities, aes(label=city, size=10, y=lat+.1)) + scale_colour_manual(values=c("#3CA76E", "#91383C"), aes(alpha=0.5)) + scale_y_continuous(breaks=NULL) + scale_x_continuous(breaks=NULL) + labs(x="", y="")
 ```
 
-
-
-
 ```{r}
+# In this section I create the temperatures graph. 
+
+# Add a column of the formatted dates, similar to what is used in the original graph
+#   - Also change the y scaling to what is used in the original graph
+#   - Get rid of y labels
+#   - Add the customized date formatting
+#   - Add the other text of the temperature itself next to the date
 temps <- nap$temperatures
 temps['formatted_dates'] <- format(temps$date, "%d of %b")
 temp_plot <- ggplot(temps, aes(long, temp)) + geom_line() + theme(
@@ -300,13 +320,17 @@ temp_plot <- ggplot(temps, aes(long, temp)) + geom_line() + theme(
 ```
 
 ```{r}
+# Arrange both the Napoleon's path and the temperatures together.
 grid.arrange(minard_plot, temp_plot, nrow=2)
 
 ```
 
-
 #### References
+
 I used the following :
-- https://stackoverflow.com/questions/44869074/using-ggplot2-how-to-set-the-tick-marks-intervals-on-y-axis-without-distorting for scalling identification
-- Some of this: https://github.com/andrewheiss/fancy-minard 
-- In addition, time spend via R Studio's Help functionality (built in documentation)
+
+-   https://stackoverflow.com/questions/44869074/using-ggplot2-how-to-set-the-tick-marks-intervals-on-y-axis-without-distorting for scalling identification
+
+-   Some of this: https://github.com/andrewheiss/fancy-minard
+
+-   In addition, time spend via R Studio's Help functionality (built in documentation)
