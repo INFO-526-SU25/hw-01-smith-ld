@@ -243,3 +243,56 @@ geom_smooth(method="lm", se=FALSE)
 The relationship of credit utilization is different for students. When comparing credit utilization versus balance, students have a positive correlation for credit card balance, but a negative one if they are not married, and a marginally negative one for those that are married. For non-students, we still find a positive correlation of credit utilization to income.
 
 ## 5 - Napoleon’s march.
+
+
+```{r}
+
+knitr::opts_chunk$set(
+  fig.width = 2,        # 7" width
+  fig.asp = .4,      # the golden ratio
+  fig.retina = 3,       # dpi multiplier for displaying HTML output on retina
+  fig.align = "center", # center align figures
+  dpi = 300             # higher dpi, sharper image
+)
+
+nap <- read_rds("data/napoleon.rds")
+advancing <- troops |> filter(direction == "advancing" & group==1)
+retreating <- troops |> filter(direction == "retreating" & group == 1)
+h <- ggplot(advancing, aes(x=long, y=lat, size=survivors), colors=direction)
+
+adv2 <- troops |> filter(direction == "advancing" & group==2)
+rtr2 <- troops |> filter(direction == "retreating" & group == 2)
+adv3 <- troops |> filter(direction == "advancing" & group==3)
+rtr3 <- troops |> filter(direction == "retreating" & group == 3)
+
+p<- h + geom_path(data=retreating, aes(long, lat, size=survivors, color=direction), linejoin = "bevel", lineend="butt") +
+  geom_path(data=rtr2, aes(long, lat, size=survivors, color=direction), linejoin = "bevel", lineend="butt") + 
+  geom_path(data=rtr3, aes(long, lat, size=survivors, color=direction), linejoin = "bevel", lineend="butt") + 
+    geom_path(data=adv3, aes(long, lat, size=survivors, color=direction), linejoin = "bevel", lineend="butt") + 
+  geom_path(data=adv2, aes(long, lat, size=survivors, color=direction), linejoin = "bevel", lineend="butt") + 
+geom_path(aes(color=direction), linejoin = "bevel", lineend="butt")
+
+p +  theme(panel.background=element_rect(fill="white", colour="grey", linewidth = 1), panel.grid = element_line(colour="lightgrey"),
+                 legend.position="none", 
+) + geom_text(data=nap$cities, aes(label=city, size=10, y=lat+.1)) + scale_size(range=c(2, 10))
+```
+
+
+
+
+```{r}
+temps <- nap$temperatures
+ggplot(temps, aes(long, temp)) + geom_line() + theme(
+  panel.background=element_rect(fill="white", linewidth = 1), 
+  panel.grid=element_line(color = "lightgrey"),
+  panel.grid.major.x=element_blank(),
+  panel.grid.minor.x=element_blank()
+  
+) + 
+  scale_y_continuous(breaks=seq(0, -30, by=-5))
+```
+
+References
+I used the following 
+- https://stackoverflow.com/questions/44869074/using-ggplot2-how-to-set-the-tick-marks-intervals-on-y-axis-without-distorting for scalling identification
+- Some of this: https://github.com/andrewheiss/fancy-minard 
