@@ -17,8 +17,8 @@ if (!require("pacman"))
 # pacman::p_load() 
 
 #devtools::install_github("tidyverse/dsbox")
-install.packages("readr")
-install.packages("tidyverse")
+install.packages("readr", repos = "http://cran.us.r-project.org")
+install.packages("tidyverse", repos = "http://cran.us.r-project.org")
 library("readr")
 library("tidyverse")
 library("ggplot2")
@@ -131,7 +131,7 @@ ggplot(county %>% filter(!is.na(median_edu))) +
 ### 3c
 
 ```{r}
-install.packages("gridExtra")
+install.packages("gridExtra", repos = "http://cran.us.r-project.org")
 
 ```
 
@@ -261,6 +261,7 @@ nap <- read_rds("data/napoleon.rds")
 
 # I created subsets fo data here for ease of use when graphing.
 # I did so for me to use geom_path and identify coloring and direct lines, instead of using someing like geom_line(), which would not perform in a similar manner. Subsets of data are stratified by group trooping and advancing or retreating.
+troops <- nap$troops
 advancing <- troops |> filter(direction == "advancing" & group==1)
 retreating <- troops |> filter(direction == "retreating" & group == 1)
 h <- ggplot(advancing, aes(x=long, y=lat, size=survivors), colors=direction)
